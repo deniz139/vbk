@@ -16,7 +16,6 @@ export default function Leaderboard() {
 
   useEffect(() => {
     load()
-    // Realtime subscription — yeni puan gelince otomatik güncelle
     const channel = subscribeLeaderboard(() => load())
     return () => channel.unsubscribe()
   }, [])
@@ -39,7 +38,9 @@ export default function Leaderboard() {
         {players.map((p, i) => (
           <div key={p.id} className={`lb-row ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
             <div className="lb-rank">
-              {i < 3 ? <span className="lb-medal">{medals[i]}</span> : <span className="lb-rank-num">{i + 1}</span>}
+              {i < 3
+                ? <span className="lb-medal">{medals[i]}</span>
+                : <span className="lb-rank-num">{i + 1}</span>}
             </div>
             <div className="lb-name">{p.name}</div>
             <div className="lb-bar-wrap">

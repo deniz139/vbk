@@ -13,15 +13,32 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // ── Players ──────────────────────────────────────────────────
 
 export async function getOrCreatePlayer(name, email = null) {
-  // Aynı isimde oyuncu varsa getir, yoksa oluştur
-  if (email) {
-    const { data: existing } = await supabase
-      .from('players').select('*').eq('email', email).single()
-    if (existing) return existing
+  // Önce localStorage'dan bu cihazın player_id'sini kontrol et
+  const savedId = localStorage.getItem('player_id')
+  if (savedId) {
+    const { data: saved } = await supabase
+      .from('players').select('*').eq('id', savedId).single()
+    if (saved) return saved
   }
+
+  // Aynı isimde oyuncu var mı?
+  const { data: existing } = await supabase
+    .from('players').select('*').ilike('name', name.trim()).single()
+  if (existing) {
+    throw new Error('DUPLICATE_NAME')
+  }
+
   const { data, error } = await supabase
-    .from('players').insert({ name, email }).select().single()
+    .from('players').insert({ name: name.trim(), email }).select().single()
   if (error) throw error
+
+  localStorage.setItem('player_id', data.id)
+  localStorage.setItem('player_name', data.name)
+  return data
+}
+
+export async function getPlayerById(id) {
+  const { data } = await supabase.from('players').select('*').eq('id', id).single()
   return data
 }
 

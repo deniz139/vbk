@@ -122,22 +122,58 @@ export async function finishRound(roundId, winnerId) {
   }
 }
 
-// ── Claude API ───────────────────────────────────────────────
+// ── AI API (Gemini veya Claude) ──────────────────────────────
 
 export async function runPromptWithClaude(task, promptText) {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY
+  const claudeKey = import.meta.env.VITE_ANTHROPIC_API_KEY
+
+  if (geminiKey) {
+    return runWithGemini(task, promptText, geminiKey)
+  } else if (claudeKey) {
+    return runWithClaude(task, promptText, claudeKey)
+  } else {
+    // Mock — API key yok
+    await new Promise(r => setTimeout(r, 800))
+    return `[Mock cevap]\nGörev: ${task}\nPrompt: ${promptText.slice(0, 60)}...\n\nGerçek API için VITE_GEMINI_API_KEY veya VITE_ANTHROPIC_API_KEY ekleyin.`
+  }
+}
+
+async function runWithGemini(task, promptText, apiKey) {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `Görev: ${task}\n\nKullanıcının promptu: ${promptText}\n\nBu promptu uygula ve görevi tamamla. Kısa ve etkileyici ol, maksimum 3-4 cümle.` }]
+        }]
+      })
+    }
+  )
+  const data = await res.json()
+  if (data.error) throw new Error(data.error.message)
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Cevap alınamadı.'
+}
+
+async function runWithClaude(task, promptText, apiKey) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: `Görev: ${task}\n\nKullanıcının promptu: ${promptText}\n\nBu promptu takip ederek görevi tamamla.`
-      }]
+      max_tokens: 500,
+      messages: [{ role: 'user', content: `Görev: ${task}\n\nKullanıcının promptu: ${promptText}\n\nBu promptu uygula ve görevi tamamla. Kısa ve etkileyici ol, maksimum 3-4 cümle.` }]
     })
   })
-  const data = await response.json()
+  const data = await res.json()
+  if (data.error) throw new Error(data.error.message)
   return data.content?.[0]?.text || 'Cevap alınamadı.'
 }
 

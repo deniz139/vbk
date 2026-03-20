@@ -16,7 +16,13 @@ export default function BattleJoin() {
     const r = await getActiveRound()
     setRound(r)
     if (!r) { setStep('waiting'); return }
-    if (r.status === 'collecting') setStep(name ? 'write' : 'name')
+
+    if (r.status === 'collecting') {
+      // Aynı turda daha önce prompt gönderdik mi?
+      const sentRoundId = localStorage.getItem('battle_sent_round')
+      if (sentRoundId === r.id) { setStep('submitted'); return }
+      setStep(name ? 'write' : 'name')
+    }
     else if (r.status === 'voting') setStep('voting')
     else if (r.status === 'finished') setStep('finished')
     else setStep('waiting')
@@ -40,6 +46,7 @@ export default function BattleJoin() {
     setError('')
     try {
       await submitPrompt(round.id, name, prompt.trim())
+      localStorage.setItem('battle_sent_round', round.id)
       setStep('submitted')
     } catch (e) {
       setError('Gönderilemedi, tekrar dene.')

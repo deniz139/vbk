@@ -1,5 +1,6 @@
 // src/App.jsx
 import { useState, useEffect } from 'react'
+import HomePage from './pages/HomePage'
 import QuestionScreen from './pages/QuestionScreen'
 import AdminPanel from './pages/AdminPanel'
 import Leaderboard from './pages/Leaderboard'
@@ -11,35 +12,44 @@ import AttendanceAdmin from './pages/attendance/AttendanceAdmin'
 import NetworkJoin from './pages/network/NetworkJoin'
 import NetworkMatches from './pages/network/NetworkMatches'
 import NetworkAdmin from './pages/network/NetworkAdmin'
+import AdminGate from './pages/admin/AdminGate'
+import AdminHub from './pages/admin/AdminHub'
+import NavBar from './components/NavBar'
 import './index.css'
 
 function getStationFromURL() {
-  const path = window.location.pathname
-  const match = path.match(/^\/q\/([^/?]+)/)
+  const match = window.location.pathname.match(/^\/q\/([^/?]+)/)
   return match ? match[1] : null
 }
 
 function getSessionFromURL() {
-  const path = window.location.pathname
-  const match = path.match(/^\/checkin\/([^/?]+)/)
+  const match = window.location.pathname.match(/^\/checkin\/([^/?]+)/)
   return match ? match[1] : null
 }
 
 function getPage() {
   const path = window.location.pathname
-  if (path.startsWith('/q/')) return 'question'
-  if (path.startsWith('/checkin/')) return 'checkin'
-  if (path === '/admin') return 'admin'
-  if (path === '/leaderboard') return 'leaderboard'
-  if (path === '/battle/join') return 'battle-join'
-  if (path === '/battle/admin') return 'battle-admin'
-  if (path === '/battle') return 'battle-screen'
-  if (path === '/attendance/admin') return 'attendance-admin'
-  if (path === '/network/join') return 'network-join'
-  if (path === '/network/matches') return 'network-matches'
-  if (path === '/network/admin') return 'network-admin'
+  if (path.startsWith('/q/'))        return 'question'
+  if (path.startsWith('/checkin/'))  return 'checkin'
+  if (path === '/leaderboard')       return 'leaderboard'
+  if (path === '/battle/join')       return 'battle-join'
+  if (path === '/battle')            return 'battle-screen'
+  if (path === '/network/join')      return 'network-join'
+  if (path === '/network/matches')   return 'network-matches'
+  if (path === '/a/snack')           return 'a-snack'
+  if (path === '/a/battle')          return 'a-battle'
+  if (path === '/a/attendance')      return 'a-attendance'
+  if (path === '/a/network')         return 'a-network'
+  if (path === '/a/battle-screen')   return 'a-battle-screen'
+  if (path === '/panel')             return 'panel'
+  if (path === '/a')                 return 'panel'
   return 'home'
 }
+
+// Hangi sayfalar dark tema kullanacak
+const DARK_PAGES = ['home', 'leaderboard', 'battle-screen', 'a-battle-screen', 'question', 'checkin', 'battle-join', 'network-join', 'network-matches', 'a-snack', 'a-battle', 'a-attendance', 'a-network', 'panel']
+// Hangi sayfalar admin (navbar gösterme ya da farklı)
+const ADMIN_PAGES = ['a-snack', 'a-battle', 'a-attendance', 'a-network', 'panel']
 
 export default function App() {
   const [page, setPage] = useState(getPage())
@@ -52,33 +62,41 @@ export default function App() {
     return () => window.removeEventListener('popstate', handler)
   }, [])
 
-  if (page === 'question' && stationId) return <QuestionScreen stationId={stationId} />
-  if (page === 'checkin' && sessionId) return <AttendanceCheckin sessionId={sessionId} />
-  if (page === 'admin') return <AdminPanel />
-  if (page === 'leaderboard') return <Leaderboard />
-  if (page === 'battle-join') return <BattleJoin />
-  if (page === 'battle-screen') return <BattleScreen />
-  if (page === 'battle-admin') return <BattleAdmin />
-  if (page === 'attendance-admin') return <AttendanceAdmin />
-  if (page === 'network-join') return <NetworkJoin />
-  if (page === 'network-matches') return <NetworkMatches />
-  if (page === 'network-admin') return <NetworkAdmin />
+  // Dark tema body class
+  useEffect(() => {
+    if (DARK_PAGES.includes(page)) {
+      document.body.classList.add('dark-theme')
+    } else {
+      document.body.classList.remove('dark-theme')
+    }
+  }, [page])
+
+  const isDark = DARK_PAGES.includes(page)
+  const isAdmin = ADMIN_PAGES.includes(page)
+  const showNav = page !== 'home' && page !== 'battle-screen' && page !== 'a-battle-screen'
+
+  function renderPage() {
+    if (page === 'home')            return <HomePage />
+    if (page === 'question' && stationId) return <QuestionScreen stationId={stationId} />
+    if (page === 'checkin' && sessionId)  return <AttendanceCheckin sessionId={sessionId} />
+    if (page === 'leaderboard')     return <Leaderboard />
+    if (page === 'battle-join')     return <BattleJoin />
+    if (page === 'battle-screen')   return <BattleScreen />
+    if (page === 'network-join')    return <NetworkJoin />
+    if (page === 'network-matches') return <NetworkMatches />
+    if (page === 'a-snack')         return <AdminGate><AdminPanel /></AdminGate>
+    if (page === 'a-battle')        return <AdminGate><BattleAdmin /></AdminGate>
+    if (page === 'a-battle-screen') return <AdminGate><BattleScreen /></AdminGate>
+    if (page === 'a-attendance')    return <AdminGate><AttendanceAdmin /></AdminGate>
+    if (page === 'a-network')       return <AdminGate><NetworkAdmin /></AdminGate>
+    if (page === 'panel')           return <AdminGate><AdminHub /></AdminGate>
+    return <HomePage />
+  }
 
   return (
-    <div className="home">
-      <h1>Zirve Gamification</h1>
-      <div className="home-links">
-        <a href="/q/tost">🍞 Snack QR (demo)</a>
-        <a href="/admin">⚙️ Snack Admin</a>
-        <a href="/leaderboard">🏆 Leaderboard</a>
-        <a href="/battle/join">⚡ Prompt Battle — Katılımcı</a>
-        <a href="/battle">⚡ Prompt Battle — Büyük Ekran</a>
-        <a href="/battle/admin">⚡ Prompt Battle — Admin</a>
-        <a href="/attendance/admin">📋 Yoklama Admin</a>
-        <a href="/network/join">🤝 Networking — Profil Oluştur</a>
-        <a href="/network/matches">🤝 Networking — Eşleşmelerim</a>
-        <a href="/network/admin">🤝 Networking — Admin</a>
-      </div>
-    </div>
+    <>
+      {showNav && <NavBar dark={isDark} />}
+      {renderPage()}
+    </>
   )
 }

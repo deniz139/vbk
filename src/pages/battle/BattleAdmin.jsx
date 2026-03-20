@@ -6,8 +6,6 @@ import {
   runPromptWithClaude, saveClaudeOutput, subscribeBattle
 } from '../../lib/battle'
 
-const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY
-
 export default function BattleAdmin() {
   const [round, setRound] = useState(null)
   const [prompts, setPrompts] = useState([])
@@ -75,28 +73,8 @@ export default function BattleAdmin() {
   }
 
   async function runClaudeLocal(task, promptText) {
-    if (!ANTHROPIC_KEY) {
-      // API key yoksa mock response
-      await new Promise(r => setTimeout(r, 1000))
-      return `[Mock Claude cevabı]\nGörev: ${task}\nPrompt: ${promptText.slice(0, 50)}...\n\nBu gerçek bir API cevabı değil. VITE_ANTHROPIC_API_KEY ekleyin.`
-    }
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
-        messages: [{ role: 'user', content: `Görev: ${task}\n\nKullanıcının promptu: ${promptText}\n\nBu promptu uygula ve görevi tamamla. Kısa ve etkileyici ol.` }]
-      })
-    })
-    const data = await res.json()
-    if (data.error) throw new Error(data.error.message)
-    return data.content?.[0]?.text || 'Cevap alınamadı.'
+    const { runPromptWithClaude } = await import('../../lib/battle')
+    return runPromptWithClaude(task, promptText)
   }
 
   async function handleFinish() {
@@ -275,14 +253,6 @@ export default function BattleAdmin() {
         >
           Turu sıfırla
         </button>
-      )}
-
-      {/* API Key uyarısı */}
-      {!ANTHROPIC_KEY && (
-        <div style={{marginTop:24,padding:'12px 16px',background:'#FAEEDA',borderRadius:8,fontSize:13,color:'#633806'}}>
-          ⚠️ <strong>VITE_ANTHROPIC_API_KEY</strong> eksik — Claude mock cevap dönüyor.
-          .env.local dosyasına ekle: <code>VITE_ANTHROPIC_API_KEY=sk-ant-...</code>
-        </div>
       )}
     </div>
   )
