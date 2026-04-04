@@ -11,7 +11,16 @@ export async function getActiveRound() {
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
-  return data
+  if (data) return data
+  // Yoksa en son finished olanı getir (kazanan ekranı için)
+  const { data: last } = await supabase
+    .from('battle_rounds')
+    .select('*')
+    .eq('status', 'finished')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+  return last
 }
 
 export async function createRound(task) {

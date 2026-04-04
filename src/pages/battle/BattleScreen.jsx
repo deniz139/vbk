@@ -1,21 +1,16 @@
 // src/pages/battle/BattleScreen.jsx
-// Büyük ekrana (projektör/TV) açılacak sayfa
-import { useState, useEffect, useRef } from 'react'
-import {
-  getActiveRound, getPromptsForRound, getVotesForRound,
-  subscribeBattle, finishRound
-} from '../../lib/battle'
+import { useState, useEffect } from 'react'
+import { getActiveRound, getPromptsForRound, subscribeBattle } from '../../lib/battle'
 
 export default function BattleScreen() {
   const [round, setRound] = useState(null)
   const [prompts, setPrompts] = useState([])
-  const [votes, setVotes] = useState([])
-  const [promptA, setPromptA] = useState(null)
-  const [promptB, setPromptB] = useState(null)
   const [status, setStatus] = useState('waiting')
+  const [currentPrompt, setCurrentPrompt] = useState(null)
   const [winner, setWinner] = useState(null)
   const [totalSubmissions, setTotalSubmissions] = useState(0)
-  const finishingRef = useRef(false)
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [total, setTotal] = useState(0)
 
   async function load() {
     const r = await getActiveRound()
@@ -27,16 +22,15 @@ export default function BattleScreen() {
     setPrompts(allPrompts)
     setTotalSubmissions(allPrompts.length)
 
-    if (r.status === 'voting' || r.status === 'finished') {
-      const a = allPrompts.find(p => p.id === r.prompt_a_id)
-      const b = allPrompts.find(p => p.id === r.prompt_b_id)
-      setPromptA(a || null)
-      setPromptB(b || null)
-      const v = await getVotesForRound(r.id)
-      setVotes(v)
+    if (r.status === 'presenting' && r.selected_prompt_ids?.length > 0) {
+      const idx = r.current_display_idx || 0
+      setCurrentIdx(idx)
+      setTotal(r.selected_prompt_ids.length)
+      const p = allPrompts.find(p => p.id === r.selected_prompt_ids[idx])
+      setCurrentPrompt(p || null)
     }
 
-    if (r.status === 'finished') {
+    if (r.status === 'finished' && r.winner_id) {
       const win = allPrompts.find(p => p.id === r.winner_id)
       setWinner(win || null)
     }
@@ -48,32 +42,15 @@ export default function BattleScreen() {
     return () => ch.unsubscribe()
   }, [])
 
-  const votesA = votes.filter(v => v.prompt_id === promptA?.id).length
-  const votesB = votes.filter(v => v.prompt_id === promptB?.id).length
-  const totalVotes = votesA + votesB
-
   return (
     <div className="bs-root">
-
-      {/* Header */}
       <div className="bs-header">
         <div className="bs-logo">⚡ Prompt Battle</div>
-        {status === 'collecting' && (
-          <div className="bs-pill collecting">
-            {totalSubmissions} prompt gönderildi
-          </div>
-        )}
-        {status === 'voting' && (
-          <div className="bs-pill voting">
-            {totalVotes} oy kullanıldı
-          </div>
-        )}
-        {status === 'finished' && (
-          <div className="bs-pill finished">Tur tamamlandı</div>
-        )}
+        {status === 'collecting' && <div className="bs-pill collecting">{totalSubmissions} prompt gönderildi</div>}
+        {status === 'presenting' && <div className="bs-pill voting">{currentIdx+1} / {total}</div>}
+        {status === 'finished' && <div className="bs-pill finished">Tur tamamlandı</div>}
       </div>
 
-      {/* WAITING */}
       {status === 'waiting' && (
         <div className="bs-center">
           <div className="bs-waiting-icon">⚡</div>
@@ -82,7 +59,6 @@ export default function BattleScreen() {
         </div>
       )}
 
-      {/* COLLECTING */}
       {status === 'collecting' && round && (
         <div className="bs-center">
           <div className="bs-task-display">
@@ -94,76 +70,40 @@ export default function BattleScreen() {
             {prompts.slice(-6).map(p => (
               <div key={p.id} className="bs-submission-chip">
                 <span className="bs-chip-name">{p.player_name}</span>
-                <span className="bs-chip-text">{p.prompt_text.slice(0, 40)}…</span>
+                <span className="bs-chip-text">{p.prompt_text.slice(0,40)}…</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* VOTING */}
-      {status === 'voting' && promptA && promptB && (
-        <div className="bs-battle-area">
-          <div className="bs-task-strip">
-            <span className="bs-task-label-small">Görev:</span>
-            <span className="bs-task-inline">{round?.task}</span>
+      {status === 'presenting' && currentPrompt && (
+        <div className="bs-center" style={{maxWidth:800,margin:'0 auto',width:'100%'}}>
+          <div style={{fontSize:13,color:'var(--text-muted)',marginBottom:16,textTransform:'uppercase',letterSpacing:'0.08em',fontWeight:600}}>
+            {currentIdx+1} / {total}
           </div>
-          <div className="bs-vs-grid">
-            {/* A */}
-            <div className={`bs-prompt-card ${votesA > votesB ? 'leading' : ''}`}>
-              <div className="bs-card-header">
-                <div className="bs-card-letter a">A</div>
-                <div className="bs-card-author">{promptA.player_name}</div>
+          <div style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:'40px 48px',width:'100%',textAlign:'left'}}>
+            <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:28}}>
+              <div style={{width:52,height:52,borderRadius:'50%',background:'var(--purple-dark)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,fontWeight:800,flexShrink:0}}>
+                {currentIdx+1}
               </div>
-              <div className="bs-card-section">
-                <div className="bs-card-label">Prompt</div>
-                <div className="bs-card-prompt">{promptA.prompt_text}</div>
-              </div>
-              <div className="bs-card-divider" />
-              <div className="bs-card-section">
-                <div className="bs-card-label">Claude'un cevabı</div>
-                <div className="bs-card-output">{promptA.output_text || '...'}</div>
-              </div>
-              <div className="bs-vote-bar-wrap">
-                <div
-                  className="bs-vote-bar a"
-                  style={{ width: totalVotes ? `${Math.round(votesA / totalVotes * 100)}%` : '0%' }}
-                />
-                <span className="bs-vote-count">{votesA} oy ({totalVotes ? Math.round(votesA / totalVotes * 100) : 0}%)</span>
+              <div>
+                <div style={{fontSize:20,fontWeight:700}}>{currentPrompt.player_name}</div>
               </div>
             </div>
-
-            <div className="bs-vs-badge">VS</div>
-
-            {/* B */}
-            <div className={`bs-prompt-card ${votesB > votesA ? 'leading' : ''}`}>
-              <div className="bs-card-header">
-                <div className="bs-card-letter b">B</div>
-                <div className="bs-card-author">{promptB.player_name}</div>
-              </div>
-              <div className="bs-card-section">
-                <div className="bs-card-label">Prompt</div>
-                <div className="bs-card-prompt">{promptB.prompt_text}</div>
-              </div>
-              <div className="bs-card-divider" />
-              <div className="bs-card-section">
-                <div className="bs-card-label">Claude'un cevabı</div>
-                <div className="bs-card-output">{promptB.output_text || '...'}</div>
-              </div>
-              <div className="bs-vote-bar-wrap">
-                <div
-                  className="bs-vote-bar b"
-                  style={{ width: totalVotes ? `${Math.round(votesB / totalVotes * 100)}%` : '0%' }}
-                />
-                <span className="bs-vote-count">{votesB} oy ({totalVotes ? Math.round(votesB / totalVotes * 100) : 0}%)</span>
-              </div>
+            <div style={{fontSize:18,fontStyle:'italic',color:'rgba(255,255,255,0.7)',marginBottom:28,lineHeight:1.6,borderLeft:'3px solid var(--purple)',paddingLeft:16}}>
+              "{currentPrompt.prompt_text}"
             </div>
+            {currentPrompt.output_text && (
+              <div>
+                <div style={{fontSize:12,fontWeight:600,color:'var(--purple)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:12}}>Output</div>
+                <div style={{fontSize:18,lineHeight:1.7,color:'rgba(255,255,255,0.9)'}}>{currentPrompt.output_text}</div>
+              </div>
+            )}
           </div>
-          <p className="bs-vote-instruction">Telefonundan oy kullanın → <strong>{window.location.origin}/battle/join</strong></p>
         </div>
       )}
 
-      {/* FINISHED */}
       {status === 'finished' && winner && (
         <div className="bs-center">
           <div className="bs-winner-badge">🏆</div>
@@ -173,9 +113,14 @@ export default function BattleScreen() {
           {winner.output_text && (
             <div className="bs-winner-output">{winner.output_text}</div>
           )}
-          <div className="bs-winner-votes">
-            {Math.max(votesA, votesB)} / {totalVotes} oy
-          </div>
+        </div>
+      )}
+
+      {status === 'finished' && !winner && (
+        <div className="bs-center">
+          <div className="bs-waiting-icon">⚡</div>
+          <h1 className="bs-big-title">Prompt Battle</h1>
+          <p className="bs-sub">Moderatör turu başlatmayı bekliyor...</p>
         </div>
       )}
     </div>

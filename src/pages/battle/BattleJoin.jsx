@@ -1,15 +1,15 @@
 // src/pages/battle/BattleJoin.jsx
 import { useState, useEffect } from 'react'
-import { getActiveRound, submitPrompt } from '../../lib/battle'
-import { subscribeBattle } from '../../lib/battle'
+import { getActiveRound, submitPrompt, subscribeBattle, getPromptsForRound } from '../../lib/battle'
 
 export default function BattleJoin() {
   const [round, setRound] = useState(null)
-  const [step, setStep] = useState('loading') // loading | waiting | write | submitted | voting | finished
+  const [step, setStep] = useState('loading')
   const [name, setName] = useState(() => localStorage.getItem('battle_name') || '')
   const [prompt, setPrompt] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [winner, setWinner] = useState(null)
   const charLimit = 280
 
   async function load() {
@@ -18,14 +18,22 @@ export default function BattleJoin() {
     if (!r) { setStep('waiting'); return }
 
     if (r.status === 'collecting') {
-      // Aynı turda daha önce prompt gönderdik mi?
       const sentRoundId = localStorage.getItem('battle_sent_round')
       if (sentRoundId === r.id) { setStep('submitted'); return }
       setStep(name ? 'write' : 'name')
+    } else if (r.status === 'presenting') {
+      setStep('presenting')
+    } else if (r.status === 'finished') {
+      // Kazananı bul
+      if (r.winner_id) {
+        const prompts = await getPromptsForRound(r.id)
+        const w = prompts.find(p => p.id === r.winner_id)
+        setWinner(w || null)
+      }
+      setStep('finished')
+    } else {
+      setStep('waiting')
     }
-    else if (r.status === 'voting') setStep('voting')
-    else if (r.status === 'finished') setStep('finished')
-    else setStep('waiting')
   }
 
   useEffect(() => {
@@ -42,15 +50,12 @@ export default function BattleJoin() {
 
   async function handleSubmit() {
     if (!prompt.trim() || !round) return
-    setSubmitting(true)
-    setError('')
+    setSubmitting(true); setError('')
     try {
       await submitPrompt(round.id, name, prompt.trim())
       localStorage.setItem('battle_sent_round', round.id)
       setStep('submitted')
-    } catch (e) {
-      setError('Gönderilemedi, tekrar dene.')
-    }
+    } catch (e) { setError('Gönderilemedi, tekrar dene.') }
     setSubmitting(false)
   }
 
@@ -59,33 +64,33 @@ export default function BattleJoin() {
       <div className="q-card">
 
         {step === 'loading' && (
-          <div className="q-section q-center">
-            <div className="q-spinner" />
-          </div>
+          <div className="q-section q-center"><div className="q-spinner" /></div>
         )}
 
         {step === 'waiting' && (
           <div className="q-section q-center">
-            <div className="battle-icon">⚡</div>
-            <h2 className="q-title" style={{marginTop:12}}>Prompt Battle</h2>
-            <p className="q-sub">Tur henüz başlamadı.<br/>Moderatör başlatınca burada görünecek.</p>
+            <div style={{fontSize:48,marginBottom:12}}>⚡</div>
+            <h2 className="q-title">Prompt Battle</h2>
+            <p className="q-sub">Tur henüz başlamadı. Moderatör başlatınca burada görünecek.</p>
             <div className="waiting-pulse" />
           </div>
         )}
 
         {step === 'name' && (
           <div className="q-section">
-            <div className="battle-icon">⚡</div>
-            <h2 className="q-title" style={{marginTop:12}}>Prompt Battle</h2>
-            <p className="q-sub">Adını gir, promptunu yaz, kazan!</p>
+            <div style={{textAlign:'center',marginBottom:20}}>
+              <div style={{fontSize:40,marginBottom:8}}>⚡</div>
+              <h2 className="q-title">Prompt Battle</h2>
+              <p className="q-sub">Adını gir, promptunu yaz, kazan!</p>
+            </div>
             <label className="q-label">Adın</label>
             <input
               className="q-input"
               placeholder="Adını yaz..."
               defaultValue={name}
-              onKeyDown={e => e.key === 'Enter' && saveName(e.target.value)}
-              autoFocus
               id="name-field"
+              onKeyDown={e => e.key === 'Enter' && saveName(e.target.value.trim())}
+              autoFocus
             />
             <button className="q-btn-primary" onClick={() => {
               const v = document.getElementById('name-field').value.trim()
@@ -129,83 +134,43 @@ export default function BattleJoin() {
           <div className="q-section q-center">
             <div className="q-result-icon win" style={{fontSize:32}}>✓</div>
             <h2 className="q-title" style={{marginTop:12}}>Gönderildi!</h2>
-            <p className="q-sub">Promptun alındı. Moderatör iki promptu seçip büyük ekranda yarıştıracak.</p>
-            <p className="q-sub" style={{marginTop:8}}>Oylama başlayınca bu ekran otomatik güncellenecek.</p>
+            <p className="q-sub">Promptun alındı. Moderatör seçim yapıp ekranda gösterecek.</p>
             <div className="waiting-pulse" style={{marginTop:20}} />
           </div>
         )}
 
-        {step === 'voting' && round && (
-          <VotingStep round={round} name={name} onVoted={() => setStep('voted')} />
-        )}
-
-        {step === 'voted' && (
+        {step === 'presenting' && (
           <div className="q-section q-center">
-            <div className="q-result-icon win" style={{fontSize:28}}>👍</div>
-            <h2 className="q-title" style={{marginTop:12}}>Oyun kaydedildi!</h2>
-            <p className="q-sub">Büyük ekranda sonucu izle.</p>
+            <div style={{fontSize:48,marginBottom:12}}>🎬</div>
+            <h2 className="q-title">Sunum başladı!</h2>
+            <p className="q-sub">Promptlar büyük ekranda gösteriliyor. Etrafındaki ekranı izle!</p>
           </div>
         )}
 
         {step === 'finished' && (
           <div className="q-section q-center">
-            <div className="battle-icon">🏆</div>
-            <h2 className="q-title" style={{marginTop:12}}>Tur bitti!</h2>
-            <p className="q-sub">Sonuçları büyük ekranda gör.<br/>Yeni tur başlayınca burada görünecek.</p>
+            <div style={{fontSize:56,marginBottom:8}}>🏆</div>
+            <h2 className="q-title">Kazanan!</h2>
+            {winner ? (
+              <div style={{
+                background:'rgba(239,159,39,0.1)',border:'1px solid rgba(239,159,39,0.3)',
+                borderRadius:12,padding:'16px 20px',marginTop:12,width:'100%',textAlign:'left'
+              }}>
+                <div style={{fontSize:18,fontWeight:700,color:'var(--gold)',marginBottom:6}}>{winner.player_name}</div>
+                <div style={{fontSize:14,fontStyle:'italic',color:'var(--text-muted)',marginBottom:winner.output_text?10:0}}>
+                  "{winner.prompt_text}"
+                </div>
+                {winner.output_text && (
+                  <div style={{fontSize:14,lineHeight:1.6,color:'var(--text)'}}>{winner.output_text}</div>
+                )}
+              </div>
+            ) : (
+              <p className="q-sub" style={{marginTop:8}}>Kazanan büyük ekranda duyurulacak.</p>
+            )}
+            <p className="q-sub" style={{marginTop:16,fontSize:13}}>Yeni tur başlayınca burada görünecek.</p>
           </div>
         )}
 
-      </div>
-    </div>
-  )
-}
-
-function VotingStep({ round, name, onVoted }) {
-  const [voted, setVoted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [prompts, setPrompts] = useState({ a: null, b: null })
-
-  useEffect(() => {
-    async function load() {
-      const { getPromptsForRound, hasVoted } = await import('../../lib/battle')
-      const all = await getPromptsForRound(round.id)
-      const a = all.find(p => p.id === round.prompt_a_id)
-      const b = all.find(p => p.id === round.prompt_b_id)
-      setPrompts({ a, b })
-      const already = await hasVoted(round.id)
-      if (already) setVoted(true)
-    }
-    load()
-  }, [round])
-
-  async function vote(promptId) {
-    setLoading(true)
-    const { castVote } = await import('../../lib/battle')
-    await castVote(round.id, promptId, name)
-    setVoted(true)
-    onVoted()
-    setLoading(false)
-  }
-
-  if (voted) return (
-    <div className="q-section q-center">
-      <p className="q-sub">Oyun kaydedildi! Büyük ekranı izle.</p>
-    </div>
-  )
-
-  return (
-    <div className="q-section">
-      <div className="battle-topbar">
-        <span className="battle-pill">⚡ Oylama</span>
-      </div>
-      <p className="q-sub" style={{marginBottom:16}}>Hangi output daha iyi?</p>
-      <div className="q-options">
-        {[{ label: 'A', p: prompts.a }, { label: 'B', p: prompts.b }].map(({ label, p }) => p && (
-          <button key={p.id} className="vote-card" onClick={() => vote(p.id)} disabled={loading}>
-            <div className="vote-label">{label}</div>
-            <div className="vote-output">{p.output_text || p.prompt_text}</div>
-          </button>
-        ))}
       </div>
     </div>
   )
