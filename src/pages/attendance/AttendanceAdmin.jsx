@@ -219,8 +219,8 @@ export default function AttendanceAdmin() {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <p className="modal-sub">Katılım QR Kodu</p>
             <p className="modal-title">{qrSession.name}</p>
-            <QRCode value={`${baseUrl}/checkin/${qrSession.id}`} size={180} />
-            <p className="modal-url">{baseUrl}/checkin/{qrSession.id}</p>
+            <QRCode value={`${baseUrl}/#/checkin/${qrSession.id}`} size={180} />
+            <p className="modal-url">{baseUrl}/#/checkin/{qrSession.id}</p>
             <button className="modal-close" onClick={() => setQrSession(null)}>Kapat</button>
           </div>
         </div>
