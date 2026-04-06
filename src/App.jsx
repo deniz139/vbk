@@ -15,7 +15,7 @@ import AdminGate from './pages/admin/AdminGate'
 import AdminHub from './pages/admin/AdminHub'
 import NavBar from './components/NavBar'
 import './index.css'
-import logo from './assets/logo.png'
+import logo from './assets/vbk_logo.png'
 
 function getHashPath() {
   return window.location.hash.replace(/^#/, '') || '/'
