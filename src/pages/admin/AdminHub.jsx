@@ -3,14 +3,6 @@ import { useState } from 'react'
 
 const ADMIN_MODULES = [
   {
-    icon: '🍞',
-    title: 'Snack Admin',
-    desc: 'Standları yönet, soru ekle, QR üret, istatistikleri gör.',
-    href: '#/a/snack',
-    color: '#BA7517',
-    bg: '#FAEEDA',
-  },
-  {
     icon: '⚡',
     title: 'Prompt Battle',
     desc: 'Tur başlat, promptları seç, oylamayı yönet.',
@@ -25,31 +17,7 @@ const ADMIN_MODULES = [
     href: '#/battle',
     color: '#534AB7',
     bg: '#EEEDFE',
-  },
-  {
-    icon: '📋',
-    title: 'Yoklama',
-    desc: 'Oturum oluştur, QR göster, katılım listesini izle, CSV indir.',
-    href: '#/a/attendance',
-    color: '#1D9E75',
-    bg: '#E1F5EE',
-  },
-  {
-    icon: '🤝',
-    title: 'Networking',
-    desc: 'Profilleri gör, eşleştirmeyi başlat.',
-    href: '#/a/network',
-    color: '#D85A30',
-    bg: '#FAECE7',
-  },
-  {
-    icon: '🏆',
-    title: 'Leaderboard',
-    desc: 'Canlı puan sıralaması — büyük ekrana aç.',
-    href: '#/leaderboard',
-    color: '#639922',
-    bg: '#EAF3DE',
-  },
+  }
 ]
 
 export default function AdminHub() {
