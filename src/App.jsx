@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useState, useEffect } from 'react'
 import HomePage from './pages/HomePage'
 import QuestionScreen from './pages/QuestionScreen'
@@ -17,18 +16,25 @@ import AdminHub from './pages/admin/AdminHub'
 import NavBar from './components/NavBar'
 import './index.css'
 
+function getHashPath() {
+  return window.location.hash.replace(/^#/, '') || '/'
+}
+
 function getStationFromURL() {
-  const match = window.location.pathname.match(/^\/q\/([^/?]+)/)
+  const path = getHashPath()
+  const match = path.match(/^\/q\/([^/?]+)/)
   return match ? match[1] : null
 }
 
 function getSessionFromURL() {
-  const match = window.location.pathname.match(/^\/checkin\/([^/?]+)/)
+  const path = getHashPath()
+  const match = path.match(/^\/checkin\/([^/?]+)/)
   return match ? match[1] : null
 }
 
 function getPage() {
-  const path = window.location.pathname
+  const path = getHashPath()
+
   if (path.startsWith('/q/'))        return 'question'
   if (path.startsWith('/checkin/'))  return 'checkin'
   if (path === '/leaderboard')       return 'leaderboard'
@@ -46,10 +52,30 @@ function getPage() {
   return 'home'
 }
 
-// Hangi sayfalar dark tema kullanacak
-const DARK_PAGES = ['home', 'leaderboard', 'battle-screen', 'a-battle-screen', 'question', 'checkin', 'battle-join', 'network-join', 'network-matches', 'a-snack', 'a-battle', 'a-attendance', 'a-network', 'panel']
-// Hangi sayfalar admin (navbar gösterme ya da farklı)
-const ADMIN_PAGES = ['a-snack', 'a-battle', 'a-attendance', 'a-network', 'panel']
+const DARK_PAGES = [
+  'home',
+  'leaderboard',
+  'battle-screen',
+  'a-battle-screen',
+  'question',
+  'checkin',
+  'battle-join',
+  'network-join',
+  'network-matches',
+  'a-snack',
+  'a-battle',
+  'a-attendance',
+  'a-network',
+  'panel',
+]
+
+const ADMIN_PAGES = [
+  'a-snack',
+  'a-battle',
+  'a-attendance',
+  'a-network',
+  'panel',
+]
 
 export default function App() {
   const [page, setPage] = useState(getPage())
@@ -57,12 +83,16 @@ export default function App() {
   const sessionId = getSessionFromURL()
 
   useEffect(() => {
+    if (!window.location.hash) {
+      window.location.hash = '/'
+    }
+
     const handler = () => setPage(getPage())
-    window.addEventListener('popstate', handler)
-    return () => window.removeEventListener('popstate', handler)
+    window.addEventListener('hashchange', handler)
+
+    return () => window.removeEventListener('hashchange', handler)
   }, [])
 
-  // Dark tema body class
   useEffect(() => {
     if (DARK_PAGES.includes(page)) {
       document.body.classList.add('dark-theme')
@@ -72,24 +102,23 @@ export default function App() {
   }, [page])
 
   const isDark = DARK_PAGES.includes(page)
-  const isAdmin = ADMIN_PAGES.includes(page)
   const showNav = page !== 'home' && page !== 'battle-screen' && page !== 'a-battle-screen'
 
   function renderPage() {
-    if (page === 'home')            return <HomePage />
+    if (page === 'home') return <HomePage />
     if (page === 'question' && stationId) return <QuestionScreen stationId={stationId} />
-    if (page === 'checkin' && sessionId)  return <AttendanceCheckin sessionId={sessionId} />
-    if (page === 'leaderboard')     return <Leaderboard />
-    if (page === 'battle-join')     return <BattleJoin />
-    if (page === 'battle-screen')   return <BattleScreen />
-    if (page === 'network-join')    return <NetworkJoin />
+    if (page === 'checkin' && sessionId) return <AttendanceCheckin sessionId={sessionId} />
+    if (page === 'leaderboard') return <Leaderboard />
+    if (page === 'battle-join') return <BattleJoin />
+    if (page === 'battle-screen') return <BattleScreen />
+    if (page === 'network-join') return <NetworkJoin />
     if (page === 'network-matches') return <NetworkMatches />
-    if (page === 'a-snack')         return <AdminGate><AdminPanel /></AdminGate>
-    if (page === 'a-battle')        return <AdminGate><BattleAdmin /></AdminGate>
+    if (page === 'a-snack') return <AdminGate><AdminPanel /></AdminGate>
+    if (page === 'a-battle') return <AdminGate><BattleAdmin /></AdminGate>
     if (page === 'a-battle-screen') return <AdminGate><BattleScreen /></AdminGate>
-    if (page === 'a-attendance')    return <AdminGate><AttendanceAdmin /></AdminGate>
-    if (page === 'a-network')       return <AdminGate><NetworkAdmin /></AdminGate>
-    if (page === 'panel')           return <AdminGate><AdminHub /></AdminGate>
+    if (page === 'a-attendance') return <AdminGate><AttendanceAdmin /></AdminGate>
+    if (page === 'a-network') return <AdminGate><NetworkAdmin /></AdminGate>
+    if (page === 'panel') return <AdminGate><AdminHub /></AdminGate>
     return <HomePage />
   }
 
