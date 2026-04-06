@@ -180,7 +180,7 @@ export default function QuestionScreen({ stationId }) {
             <div className="q-result-icon win">★</div>
             <h2 className="q-title">Bu standı bitirdin!</h2>
             <p className="q-sub">Diğer standlarda daha fazla puan topla.</p>
-            <a className="q-btn-primary" href="/leaderboard">Sıralamayı gör</a>
+            <a className="q-btn-primary" href="#/leaderboard">Sıralamayı gör</a>
           </div>
         )}
 
