@@ -6,7 +6,7 @@ export default function NavBar({ dark = false }) {
 
   return (
     <div className={`navbar ${dark ? 'navbar-dark' : 'navbar-light'}`}>
-      <a href="/" className="navbar-home-btn">
+      <a href="#/" className="navbar-home-btn">
         ← Ana Menü
       </a>
     </div>
