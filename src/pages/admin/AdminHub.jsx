@@ -6,7 +6,7 @@ const ADMIN_MODULES = [
     icon: '🍞',
     title: 'Snack Admin',
     desc: 'Standları yönet, soru ekle, QR üret, istatistikleri gör.',
-    href: '/a/snack',
+    href: '#/a/snack',
     color: '#BA7517',
     bg: '#FAEEDA',
   },
@@ -14,7 +14,7 @@ const ADMIN_MODULES = [
     icon: '⚡',
     title: 'Prompt Battle',
     desc: 'Tur başlat, promptları seç, oylamayı yönet.',
-    href: '/a/battle',
+    href: '#/a/battle',
     color: '#534AB7',
     bg: '#EEEDFE',
   },
@@ -22,7 +22,7 @@ const ADMIN_MODULES = [
     icon: '⚡',
     title: 'Battle Büyük Ekran',
     desc: 'Projektöre açılacak A vs B ekranı.',
-    href: '/battle',
+    href: '#/battle',
     color: '#534AB7',
     bg: '#EEEDFE',
   },
@@ -30,7 +30,7 @@ const ADMIN_MODULES = [
     icon: '📋',
     title: 'Yoklama',
     desc: 'Oturum oluştur, QR göster, katılım listesini izle, CSV indir.',
-    href: '/a/attendance',
+    href: '#/a/attendance',
     color: '#1D9E75',
     bg: '#E1F5EE',
   },
@@ -38,7 +38,7 @@ const ADMIN_MODULES = [
     icon: '🤝',
     title: 'Networking',
     desc: 'Profilleri gör, eşleştirmeyi başlat.',
-    href: '/a/network',
+    href: '#/a/network',
     color: '#D85A30',
     bg: '#FAECE7',
   },
@@ -46,7 +46,7 @@ const ADMIN_MODULES = [
     icon: '🏆',
     title: 'Leaderboard',
     desc: 'Canlı puan sıralaması — büyük ekrana aç.',
-    href: '/leaderboard',
+    href: '#/leaderboard',
     color: '#639922',
     bg: '#EAF3DE',
   },
@@ -60,7 +60,7 @@ export default function AdminHub() {
           <h1 className="admin-title">🎛️ Panel</h1>
           <p style={{fontSize:13,color:'var(--text-muted)',marginTop:2}}>Tüm modüllere buradan erişebilirsin</p>
         </div>
-        <a href="/" className="admin-link-btn">← Ana Sayfa</a>
+        <a href="#/" className="admin-link-btn">← Ana Sayfa</a>
       </div>
 
       <div style={{display:'grid',gap:10}}>
