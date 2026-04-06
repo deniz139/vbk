@@ -2,7 +2,7 @@
 // /a/xxxx URL'lerini PIN ile korur
 import { useState, useEffect } from 'react'
 
-const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN || '719256'
+const ADMIN_PIN = import.meta.env.VITE_ADMIN_PIN || '7158'
 const SESSION_KEY = 'admin_unlocked'
 
 export default function AdminGate({ children }) {
