@@ -174,8 +174,8 @@ export default function BattleAdmin() {
       <div className="admin-header">
         <h1 className="admin-title">⚡ Battle Admin</h1>
         <div style={{display:'flex',gap:8}}>
-          <a href="/battle" target="_blank" className="admin-link-btn">Büyük Ekran ↗</a>
-          <a href="/battle/join" target="_blank" className="admin-link-btn">Katılımcı ↗</a>
+          <a href="#/battle" target="_blank" className="admin-link-btn">Büyük Ekran ↗</a>
+          <a href="#/battle/join" target="_blank" className="admin-link-btn">Katılımcı ↗</a>
         </div>
       </div>
 
