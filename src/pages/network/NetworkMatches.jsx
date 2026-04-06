@@ -10,8 +10,13 @@ export default function NetworkMatches() {
   const [noMatches, setNoMatches] = useState(false)
 
   // URL'den id al: /network/matches?id=xxx
-  const profileId = new URLSearchParams(window.location.search).get('id')
-    || localStorage.getItem('network_profile_id')
+  function getProfileIdFromHash() {
+  const hash = window.location.hash || ''
+  const queryString = hash.includes('?') ? hash.split('?')[1] : ''
+  return new URLSearchParams(queryString).get('id')
+}
+
+const profileId = getProfileIdFromHash() || localStorage.getItem('network_profile_id')
 
   async function load() {
     if (!profileId) { setLoading(false); return }
@@ -43,7 +48,7 @@ export default function NetworkMatches() {
     <div className="q-root">
       <div className="q-card">
         <div className="q-section q-center">
-          <p className="q-sub">Profil bulunamadı. <a href="/network/join" style={{color:'var(--purple)'}}>Profil oluştur →</a></p>
+          <p className="q-sub">Profil bulunamadı. <a href="#/network/join" style={{color:'var(--purple)'}}>Profil oluştur →</a></p>
         </div>
       </div>
     </div>
@@ -59,7 +64,7 @@ export default function NetworkMatches() {
             <h2 style={{fontSize:20,fontWeight:700}}>Eşleşmelerin 🤝</h2>
             {profile && <p style={{fontSize:13,color:'var(--text-muted)',marginTop:2}}>{profile.name}</p>}
           </div>
-          <a href="/network/join" style={{fontSize:13,color:'var(--purple)',textDecoration:'none'}}>Profili güncelle</a>
+          <a href="#/network/join" style={{fontSize:13,color:'var(--purple)',textDecoration:'none'}}>Profili güncelle</a>
         </div>
 
         {loading && (
