@@ -400,3 +400,14 @@ body {
   .bs-vs-grid { grid-template-columns: 1fr; }
   .bs-vs-badge { display: none; }
 }
+
+.app-logo {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  z-index: 1000;
+  cursor: pointer;
+}
