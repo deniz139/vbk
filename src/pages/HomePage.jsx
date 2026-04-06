@@ -51,7 +51,7 @@ export default function HomePage() {
       
 
       <div className="hp-footer">
-        Snack standlarındaki QR kodları okutarak puan toplayabilirsin.
+        Fuaye alanındaki faydalı kaynaklar içeren QR kodlarını kullanmayı unutmayın!
       </div>
     </div>
   )
