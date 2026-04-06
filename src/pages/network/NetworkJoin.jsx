@@ -121,7 +121,7 @@ export default function NetworkJoin() {
             <button
               className="q-btn-primary"
               style={{marginTop:20}}
-              onClick={() => window.location.href = `/network/matches?id=${profileId}`}
+              onClick={() => { window.location.hash = `/network/matches?id=${profileId}` }}
             >
               Eşleşmelerimi Gör →
             </button>
