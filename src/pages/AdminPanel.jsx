@@ -65,7 +65,7 @@ export default function AdminPanel() {
     <div className="admin-root">
       <div className="admin-header">
         <h1 className="admin-title">Admin Panel</h1>
-        <a href="/leaderboard" className="admin-link-btn">Leaderboard →</a>
+        <a href="#/leaderboard" className="admin-link-btn">Leaderboard →</a>
       </div>
 
       {/* Stats */}
@@ -104,8 +104,8 @@ export default function AdminPanel() {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <p className="modal-sub">{qrStation.name}</p>
             <p className="modal-title">QR Kod</p>
-            <QRCode value={`${baseUrl}/q/${qrStation.id}`} size={180} />
-            <p className="modal-url">{baseUrl}/q/{qrStation.id}</p>
+            <QRCode value={`${baseUrl}/#/q/${qrStation.id}`} size={180} />
+            <p className="modal-url">{baseUrl}/#/q/{qrStation.id}</p>
             <button className="modal-close" onClick={() => setQrStation(null)}>Kapat</button>
           </div>
         </div>
