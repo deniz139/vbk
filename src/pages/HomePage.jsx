@@ -10,25 +10,7 @@ const MODULES = [
     href: '#/battle/join',
     color: '#534AB7',
     bg: '#EEEDFE',
-  },
-  {
-    id: 'network',
-    icon: '🤝',
-    title: 'Networking',
-    desc: 'Profilini oluştur, ortak ilgi alanlarına göre insanlarla eşleş.',
-    href: '#/network/join',
-    color: '#1D9E75',
-    bg: '#E1F5EE',
-  },
-  {
-    id: 'leaderboard',
-    icon: '🏆',
-    title: 'Puan Sıralaması',
-    desc: 'Snack standlarından topladığın puanları gör, zirveye çık.',
-    href: '#/leaderboard',
-    color: '#BA7517',
-    bg: '#FAEEDA',
-  },
+  }
 ]
 
 export default function HomePage() {
