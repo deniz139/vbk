@@ -15,6 +15,7 @@ import AdminGate from './pages/admin/AdminGate'
 import AdminHub from './pages/admin/AdminHub'
 import NavBar from './components/NavBar'
 import './index.css'
+import logo from './assets/logo.png'
 
 function getHashPath() {
   return window.location.hash.replace(/^#/, '') || '/'
@@ -123,9 +124,15 @@ export default function App() {
   }
 
   return (
-    <>
-      {showNav && <NavBar dark={isDark} />}
-      {renderPage()}
-    </>
-  )
+  <>
+    <img 
+      src={logo} 
+      className="app-logo"
+      onClick={() => { window.location.hash = '/' }}
+    />
+
+    {showNav && <NavBar dark={isDark} />}
+    {renderPage()}
+  </>
+)
 }
