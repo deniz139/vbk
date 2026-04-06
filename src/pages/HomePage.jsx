@@ -25,9 +25,9 @@ export default function HomePage() {
   return (
     <div className="hp-root">
       <div className="hp-hero">
-        <div className="hp-hero-badge">ITÜ VBK</div>
-        <h1 className="hp-hero-title">Zirve<br />Gamification</h1>
-        <p className="hp-hero-sub">Etkinliğe katıl, puan topla, networking yap.</p>
+        <div className="hp-hero-badge">İTÜ VBK</div>
+        <h1 className="hp-hero-title">From Generative<br />To Agentic</h1>
+        <p className="hp-hero-sub">Summit'26</p>
       </div>
 
       <div className="hp-cards">
@@ -48,21 +48,7 @@ export default function HomePage() {
         ))}
       </div>
 
-      {top3.length > 0 && (
-        <div className="hp-mini-lb">
-          <div className="hp-mini-lb-title">Bu anki liderler</div>
-          {top3.map((p, i) => (
-            <div key={p.id} className="hp-mini-lb-row">
-              <span className="hp-mini-medal">{medals[i]}</span>
-              <span className="hp-mini-name">{p.name}</span>
-              <span className="hp-mini-pts">{p.total_points} puan</span>
-            </div>
-          ))}
-          <a href="#/leaderboard" className="hp-mini-lb-more">
-            Tüm sıralamayı gör →
-          </a>
-        </div>
-      )}
+      
 
       <div className="hp-footer">
         Snack standlarındaki QR kodları okutarak puan toplayabilirsin.
