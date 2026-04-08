@@ -6,7 +6,7 @@ const MODULES = [
     id: 'battle',
     icon: '⚡',
     title: 'Prompt Battle',
-    desc: "En iyi promptu yaz, Claude'a karşı yarış, puan kazan.",
+    desc: "En iyi promptu yaz, kazan!",
     href: '#/battle/join',
     color: '#534AB7',
     bg: '#EEEDFE',
