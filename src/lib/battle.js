@@ -61,129 +61,8 @@ export async function getPromptsForRound(roundId) {
   return data || []
 }
 
-export async function saveClaudeOutput(promptId, outputText) {
-  const { error } = await supabase
-    .from('battle_prompts')
-    .update({ output_text: outputText })
-    .eq('id', promptId)
-  if (error) throw error
-}
-
-export async function selectBattlePair(roundId, promptAId, promptBId) {
-  await updateRoundStatus(roundId, 'voting', {
-    prompt_a_id: promptAId,
-    prompt_b_id: promptBId,
-  })
-}
-
-// ── Voting ───────────────────────────────────────────────────
-
-export async function castVote(roundId, promptId, voterName) {
-  // IP yerine browser fingerprint benzeri bir şey kullanalım
-  const voterId = localStorage.getItem('voter_id') || crypto.randomUUID()
-  localStorage.setItem('voter_id', voterId)
-
-  const { error } = await supabase
-    .from('battle_votes')
-    .insert({ round_id: roundId, prompt_id: promptId, voter_name: voterName, voter_ip: voterId })
-  if (error) throw error
-
-  // votes sayısını artır
-  await supabase.rpc('increment_votes', { prompt_id: promptId }).catch(async () => {
-    const { data } = await supabase.from('battle_prompts').select('votes').eq('id', promptId).single()
-    await supabase.from('battle_prompts').update({ votes: (data?.votes || 0) + 1 }).eq('id', promptId)
-  })
-}
-
-export async function getVotesForRound(roundId) {
-  const { data } = await supabase
-    .from('battle_votes')
-    .select('prompt_id')
-    .eq('round_id', roundId)
-  return data || []
-}
-
-export async function hasVoted(roundId) {
-  const voterId = localStorage.getItem('voter_id')
-  if (!voterId) return false
-  const { data } = await supabase
-    .from('battle_votes')
-    .select('id')
-    .eq('round_id', roundId)
-    .eq('voter_ip', voterId)
-    .single()
-  return !!data
-}
-
 export async function finishRound(roundId, winnerId) {
   await updateRoundStatus(roundId, 'finished', { winner_id: winnerId })
-  // Kazanana puan ver
-  const { data: prompt } = await supabase
-    .from('battle_prompts')
-    .select('player_id, player_name')
-    .eq('id', winnerId).single()
-  if (prompt?.player_id) {
-    const { data: player } = await supabase
-      .from('players').select('total_points').eq('id', prompt.player_id).single()
-    await supabase.from('players')
-      .update({ total_points: (player?.total_points || 0) + 50 })
-      .eq('id', prompt.player_id)
-  }
-}
-
-// ── AI API (Gemini veya Claude) ──────────────────────────────
-
-export async function runPromptWithClaude(task, promptText) {
-  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY
-  const claudeKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-
-  if (geminiKey) {
-    return runWithGemini(task, promptText, geminiKey)
-  } else if (claudeKey) {
-    return runWithClaude(task, promptText, claudeKey)
-  } else {
-    // Mock — API key yok
-    await new Promise(r => setTimeout(r, 800))
-    return `[Mock cevap]\nGörev: ${task}\nPrompt: ${promptText.slice(0, 60)}...\n\nGerçek API için VITE_GEMINI_API_KEY veya VITE_ANTHROPIC_API_KEY ekleyin.`
-  }
-}
-
-async function runWithGemini(task, promptText, apiKey) {
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{ text: `Görev: ${task}\n\nKullanıcının promptu: ${promptText}\n\nBu promptu uygula ve görevi tamamla. Kısa ve etkileyici ol, maksimum 3-4 cümle.` }]
-        }]
-      })
-    }
-  )
-  const data = await res.json()
-  if (data.error) throw new Error(data.error.message)
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Cevap alınamadı.'
-}
-
-async function runWithClaude(task, promptText, apiKey) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 500,
-      messages: [{ role: 'user', content: `Görev: ${task}\n\nKullanıcının promptu: ${promptText}\n\nBu promptu uygula ve görevi tamamla. Kısa ve etkileyici ol, maksimum 3-4 cümle.` }]
-    })
-  })
-  const data = await res.json()
-  if (data.error) throw new Error(data.error.message)
-  return data.content?.[0]?.text || 'Cevap alınamadı.'
 }
 
 // Realtime subscriptions
@@ -192,6 +71,5 @@ export function subscribeBattle(callback) {
     .channel('battle-changes')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'battle_rounds' }, callback)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'battle_prompts' }, callback)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'battle_votes' }, callback)
     .subscribe()
 }

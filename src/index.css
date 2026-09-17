@@ -261,7 +261,7 @@ body {
 
 /* ── BATTLE SCREEN ────────────────────────────────────── */
 .bs-root { min-height: 100vh; background: var(--bg); color: #fff; display: flex; flex-direction: column; padding: 24px 32px; }
-.bs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+.bs-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-right: 44px; } /* sağ üstteki sabit .app-logo'ya yer aç */
 .bs-logo { font-size: 20px; font-weight: 700; }
 .bs-pill { font-size: 13px; font-weight: 600; padding: 6px 18px; border-radius: 20px; }
 .bs-pill.collecting { background: var(--purple-dark); color: #fff; }

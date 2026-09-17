@@ -1,44 +1,29 @@
-# Zirve Snack Gamification
+# VBK Summit — Prompt Battle
 
-React + Vite + Supabase ile çalışan QR tabanlı soru-cevap ve puan sistemi.
+React + Vite + Supabase ile çalışan canlı prompt battle.
 
-## Kurulum (15 dakika)
+## Kurulum
 
-### 1. Supabase projesi oluştur
-1. [supabase.com](https://supabase.com) → New Project
-2. Proje adı: `zirve-gamification`
-3. Database Password'ü kaydet
-4. Region: **eu-central-1** (Frankfurt — Türkiye'ye en yakın)
+### 1. Veritabanı
+Supabase Dashboard → **SQL Editor** → `supabase/battle_schema.sql` içeriğini yapıştır → **Run**.
+Tekrar çalıştırılabilir; mevcut projede eksik kolon ve kuralları tamamlar.
 
-### 2. Veritabanı schema'yı çalıştır
-1. Supabase Dashboard → **SQL Editor**
-2. `supabase/schema.sql` dosyasının içeriğini yapıştır → **Run**
-3. Demo veriler otomatik eklenir
-
-### 3. `increment_points` fonksiyonunu ekle (opsiyonel ama önerilen)
-SQL Editor'de çalıştır:
-```sql
-create or replace function increment_points(player_id uuid, amount int)
-returns void as $$
-  update players set total_points = total_points + amount where id = player_id;
-$$ language sql;
-```
-
-### 4. .env.local dosyasını oluştur
+### 2. .env dosyası
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
-Supabase Dashboard → **Project Settings → API** sayfasından:
-- `Project URL` → `VITE_SUPABASE_URL`
-- `anon public` key → `VITE_SUPABASE_ANON_KEY`
+Supabase Dashboard → **Project Settings → API Keys** sayfasından:
+- Project URL → `VITE_SUPABASE_URL`
+- Publishable key (`sb_publishable_...`) → `VITE_SUPABASE_ANON_KEY`
+- `VITE_ADMIN_PIN` → admin sayfaları için 4 haneli PIN
 
-### 5. Çalıştır
+### 3. Çalıştır
 ```bash
 npm install
 npm run dev
 ```
 
-Açılır: http://localhost:3000
+Açılır: http://localhost:3000/vbk/
 
 ---
 
@@ -46,36 +31,19 @@ Açılır: http://localhost:3000
 
 | URL | Açıklama |
 |-----|----------|
-| `/q/:stationId` | Katılımcı soru ekranı — QR bu URL'e yönlendirir |
-| `/admin` | Soru ekleme, QR üretme, istatistikler |
-| `/leaderboard` | Canlı sıralama — büyük ekrana açılır |
+| `#/battle/join` | Katılımcı ekranı — isim + prompt gönderme |
+| `#/battle` | Büyük ekran — projektöre açılır |
+| `#/a/battle` | Admin — tur başlat, output gir, seç, sun, kazananı belirle (PIN) |
+| `#/panel` | Admin menüsü (PIN) |
 
-## QR Kodlar
+## Akış
 
-Admin panelinde her stand için **QR Üret** butonuna tıkla.
-Gerçek QR kodu için `qrcode` paketi ekle:
-```bash
-npm install qrcode
-```
-`src/components/QRCode.jsx` içinde yorum satırını aç.
+1. Admin görevi yazıp **Turu Başlat**'a basar.
+2. Katılımcılar promptlarını gönderir; admin her promptun AI çıktısını elle girip 💾 ile kaydeder.
+3. Admin promptları seçip sıralar, **Sunumu Başlat** ile büyük ekranda tek tek gösterir.
+4. Admin kazananı seçer; büyük ekranda ve katılımcı ekranlarında kazanan görünür.
 
-## Deploy (Vercel)
+## Deploy
 
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-Vercel dashboard'da environment variables ekle:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
----
-
-## Diğer Modüller
-
-Bu proje snack gamification modülüdür. Diğer modüller:
-- **Prompt Battle** — A/B prompt karşılaştırma ekranı
-- **Networking Matchmaking** — ilgi alanı bazlı eşleştirme
-- **Slido benzeri Q&A** — oturum arası etkileşim
-- **QR Yoklama** — sertifika için katılım takibi
+`main`'e push → GitHub Actions ile GitHub Pages. Repo secrets:
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ADMIN_PIN`.

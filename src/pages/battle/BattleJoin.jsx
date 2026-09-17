@@ -20,7 +20,8 @@ export default function BattleJoin() {
     if (r.status === 'collecting') {
       const sentRoundId = localStorage.getItem('battle_sent_round')
       if (sentRoundId === r.id) { setStep('submitted'); return }
-      setStep(name ? 'write' : 'name')
+      // State'teki name, subscription closure'ında eski kalıyor; güncelini localStorage'dan oku
+      setStep(localStorage.getItem('battle_name') ? 'write' : 'name')
     } else if (r.status === 'presenting') {
       setStep('presenting')
     } else if (r.status === 'finished') {

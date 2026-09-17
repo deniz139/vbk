@@ -1,6 +1,3 @@
-import { useState, useEffect } from 'react'
-import { getLeaderboard } from '../lib/supabase'
-
 const MODULES = [
   {
     id: 'battle',
@@ -14,14 +11,6 @@ const MODULES = [
 ]
 
 export default function HomePage() {
-  const [top3, setTop3] = useState([])
-
-  useEffect(() => {
-    getLeaderboard(3).then(setTop3).catch(() => {})
-  }, [])
-
-  const medals = ['🥇', '🥈', '🥉']
-
   return (
     <div className="hp-root">
       <div className="hp-hero">
